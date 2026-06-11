@@ -152,8 +152,8 @@ body{display:flex;flex-direction:column;max-width:500px;margin:0 auto;}
   <div class="key-logo">JAR</div>
   <div class="key-title">J.A.R.V.I.S DEV</div>
   <div class="key-sub">시작하려면 Anthropic API 키를 입력하세요.<br>키는 이 기기에만 저장되며 외부로 전송되지 않습니다.</div>
-  <div class="key-err" id="keyErr">❌ AIza 로 시작하는 Gemini 키를 입력하세요.</div>
-  <input class="key-input" id="keyInput" type="password" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
+  <div class="key-err" id="keyErr">❌ 올바른 Gemini API 키를 입력하세요.</div>
+  <input class="key-input" id="keyInput" type="password" placeholder="Gemini API 키 입력..." autocomplete="off" spellcheck="false">
   <button class="key-btn" onclick="saveKey()">▶ 시스템 가동</button>
   <div class="key-help">
     API 키 발급: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a><br>
@@ -338,7 +338,7 @@ body{display:flex;flex-direction:column;max-width:500px;margin:0 auto;}
 function getKey(){ return localStorage.getItem('jarvis-api-key')||''; }
 function saveKey(){
   const val=document.getElementById('keyInput').value.trim();
-  if(!val.startsWith('AIza')){
+  if(!val.startsWith('AIza') && !val.startsWith('AQ')){
     document.getElementById('keyErr').style.display='block'; return;
   }
   localStorage.setItem('jarvis-api-key', val);
