@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JARVIS DEV">
+<meta name="theme-color" content="#00d4ff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>J.A.R.V.I.S DEV</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--c:#00d4ff;--c2:#7eeaff;--g:#00ff88;--r:#ff4466;--y:#ffcc00;--bg:#000d1a;--bg2:#001428;--bg3:#001f3d;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--c);font-family:'Share Tech Mono',monospace;height:100%;overflow:hidden;}
+body{display:flex;flex-direction:column;max-width:500px;margin:0 auto;}
+
+/* SCAN */
+.scan{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.25),transparent);animation:scan 6s linear infinite;pointer-events:none;z-index:999;}
+@keyframes scan{0%{top:0}100%{top:100vh}}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid rgba(0,212,255,.18);background:var(--bg);flex-shrink:0;}
+.logo{width:36px;height:36px;border:2px solid var(--c);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:0;animation:rp 2.5s ease-in-out infinite;}
+@keyframes rp{0%,100%{box-shadow:0 0 4px rgba(0,212,255,.25)}50%{box-shadow:0 0 12px rgba(0,212,255,.55)}}
+.htitle{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px;}
+.hright{text-align:right;}
+.clock{font-size:13px;}
+.hstatus{font-size:9px;color:rgba(0,212,255,.55);}
+.sdot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--g);margin-right:3px;vertical-align:middle;animation:blink 1.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid rgba(0,212,255,.13);background:var(--bg);flex-shrink:0;}
+.tab{flex:1;padding:9px 2px;text-align:center;font-size:10px;letter-spacing:.5px;color:rgba(0,212,255,.45);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;user-select:none;}
+.tab.active{color:var(--c);border-bottom-color:var(--c);background:rgba(0,212,255,.04);}
+
+/* PANELS */
+.panels{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.panel{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.panel.active{display:flex;}
+
+/* ── CHAT ── */
+.msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch;}
+.msg{max-width:88%;padding:10px 13px;font-size:12px;line-height:1.6;border-radius:6px;animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.msg.ai{align-self:flex-start;background:var(--bg2);border:1px solid rgba(0,212,255,.22);color:var(--c2);}
+.msg.ai::before{content:'JARVIS ›';display:block;font-family:'Orbitron',sans-serif;font-size:8px;color:var(--c);letter-spacing:1px;margin-bottom:4px;}
+.msg.user{align-self:flex-end;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.32);color:var(--c);}
+.msg.user::before{content:'YOU ›';display:block;font-size:8px;color:rgba(0,212,255,.55);margin-bottom:4px;}
+.msg.sys{align-self:center;background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.25);color:var(--g);font-size:10px;padding:6px 12px;max-width:95%;}
+.msg.sys::before{content:'⚡ SYSTEM ›';display:block;font-size:8px;letter-spacing:1px;margin-bottom:2px;color:rgba(0,255,136,.7);}
+.msg pre{background:rgba(0,0,0,.4);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:8px;margin-top:6px;overflow-x:auto;font-size:11px;white-space:pre-wrap;word-break:break-all;}
+.msg code{background:rgba(0,212,255,.12);padding:1px 5px;border-radius:3px;font-size:11px;}
+
+/* TYPING */
+.typing{display:none;align-self:flex-start;background:var(--bg2);border:1px solid rgba(0,212,255,.18);border-radius:6px;padding:9px 14px;gap:4px;align-items:center;}
+.typing.show{display:flex;}
+.typing span{width:5px;height:5px;background:var(--c);border-radius:50%;animation:td 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* CMD PILL BAR */
+.cmd-bar{display:flex;gap:5px;padding:7px 12px;border-bottom:1px solid rgba(0,212,255,.1);overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.cmd-bar::-webkit-scrollbar{display:none;}
+.cmd-pill{background:transparent;border:1px solid rgba(0,212,255,.3);border-radius:20px;color:rgba(0,212,255,.8);font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .18s;}
+.cmd-pill:active,.cmd-pill:hover{background:rgba(0,212,255,.15);border-color:var(--c);color:var(--c);}
+
+/* CHAT INPUT */
+.chat-bar{padding:9px 11px;padding-bottom:max(9px,env(safe-area-inset-bottom));border-top:1px solid rgba(0,212,255,.12);display:flex;gap:7px;background:var(--bg);flex-shrink:0;align-items:flex-end;}
+.chat-input{flex:1;background:var(--bg2);border:1px solid rgba(0,212,255,.3);border-radius:6px;padding:9px 11px;color:var(--c);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;resize:none;min-height:40px;max-height:120px;overflow-y:auto;}
+.chat-input::placeholder{color:rgba(0,212,255,.28);}
+.chat-input:focus{border-color:var(--c);}
+.ibtn{width:40px;height:40px;background:transparent;border:1px solid rgba(0,212,255,.3);border-radius:6px;color:var(--c);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .18s;}
+.ibtn:active{background:rgba(0,212,255,.18);transform:scale(.95);}
+.ibtn.listening{border-color:var(--r);color:var(--r);animation:vp 1s infinite;}
+@keyframes vp{0%,100%{box-shadow:0 0 0 0 rgba(255,68,102,.3)}50%{box-shadow:0 0 0 5px transparent}}
+
+/* ── SKILLS ── */
+.scroll-p{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;}
+.hcard{background:var(--bg2);border:1px solid rgba(0,212,255,.18);border-radius:8px;padding:12px 14px;}
+.hcard-title{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:rgba(0,212,255,.55);margin-bottom:10px;}
+.skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.skill-card{background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.15);border-radius:6px;padding:10px 10px;cursor:pointer;transition:all .18s;}
+.skill-card:active{background:rgba(0,212,255,.12);border-color:var(--c);}
+.skill-cmd{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--c);margin-bottom:3px;}
+.skill-desc{font-size:10px;color:rgba(0,212,255,.6);line-height:1.4;}
+.phase-badge{display:inline-block;font-size:8px;padding:2px 6px;border-radius:10px;margin-bottom:5px;letter-spacing:.5px;}
+.phase-define{background:rgba(255,204,0,.1);border:1px solid rgba(255,204,0,.3);color:var(--y);}
+.phase-plan{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--g);}
+.phase-build{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:var(--c);}
+.phase-verify{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);color:var(--r);}
+.phase-ship{background:rgba(180,100,255,.1);border:1px solid rgba(180,100,255,.3);color:#b464ff;}
+
+/* ── TASKS ── */
+.task-bar2{display:flex;gap:7px;padding:10px 12px;border-bottom:1px solid rgba(0,212,255,.12);flex-shrink:0;}
+.task-input{flex:1;background:var(--bg2);border:1px solid rgba(0,212,255,.3);border-radius:6px;padding:9px 11px;color:var(--c);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;}
+.task-input::placeholder{color:rgba(0,212,255,.28);}
+.task-input:focus{border-color:var(--c);}
+.add-btn{background:rgba(0,212,255,.12);border:1px solid var(--c);border-radius:6px;color:var(--c);padding:0 13px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.add-btn:active{background:rgba(0,212,255,.25);}
+.task-list{flex:1;overflow-y:auto;padding:9px 12px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch;}
+.task-item{display:flex;align-items:flex-start;gap:9px;background:var(--bg2);border:1px solid rgba(0,212,255,.15);border-radius:6px;padding:10px 11px;animation:fi .2s ease;}
+.task-chk{width:18px;height:18px;border:1px solid var(--c);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--g);flex-shrink:0;cursor:pointer;margin-top:1px;transition:all .18s;}
+.task-chk.done{background:rgba(0,255,136,.12);border-color:var(--g);}
+.task-body{flex:1;}
+.task-txt{font-size:12px;color:var(--c2);line-height:1.4;}
+.task-txt.done{text-decoration:line-through;color:rgba(0,212,255,.3);}
+.task-tag{display:inline-block;font-size:8px;padding:1px 6px;border-radius:10px;margin-bottom:3px;}
+.ttag-spec{background:rgba(255,204,0,.1);border:1px solid rgba(255,204,0,.3);color:var(--y);}
+.ttag-build{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:var(--c);}
+.ttag-test{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);color:var(--r);}
+.ttag-ship{background:rgba(180,100,255,.1);border:1px solid rgba(180,100,255,.3);color:#b464ff;}
+.task-del{background:none;border:none;color:rgba(255,68,102,.4);font-size:14px;cursor:pointer;padding:0 4px;flex-shrink:0;transition:color .18s;}
+.task-del:active{color:var(--r);}
+.tasks-sum{padding:6px 12px;font-size:9px;color:rgba(0,212,255,.35);letter-spacing:1px;border-top:1px solid rgba(0,212,255,.08);flex-shrink:0;}
+
+/* HUD */
+.hud{padding:4px 12px;padding-bottom:max(4px,env(safe-area-inset-bottom));border-top:1px solid rgba(0,212,255,.1);display:flex;justify-content:space-between;font-size:8px;color:rgba(0,212,255,.3);letter-spacing:1px;background:var(--bg);flex-shrink:0;}
+
+/* INSTALL */
+.inst-banner{display:none;margin:7px 12px 0;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.25);border-radius:6px;padding:9px 11px;font-size:10px;color:var(--c2);gap:8px;align-items:center;flex-shrink:0;}
+.inst-banner.show{display:flex;}
+.inst-btn{background:rgba(0,212,255,.15);border:1px solid var(--c);border-radius:4px;color:var(--c);font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.inst-x{cursor:pointer;color:rgba(0,212,255,.4);margin-left:auto;font-size:13px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+
+<div class="inst-banner" id="ib">
+  <span>📲 홈 화면에 JARVIS DEV 설치</span>
+  <button class="inst-btn" id="instBtn">설치</button>
+  <span class="inst-x" onclick="document.getElementById('ib').classList.remove('show')">✕</span>
+</div>
+
+<div class="header">
+  <div class="logo">JAR</div>
+  <span class="htitle">J.A.R.V.I.S DEV</span>
+  <div class="hright">
+    <div class="clock" id="clock">--:--</div>
+    <div class="hstatus"><span class="sdot"></span>DEV MODE</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="sw('chat',this)">AI 대화</div>
+  <div class="tab" onclick="sw('skills',this)">스킬</div>
+  <div class="tab" onclick="sw('tasks',this)">태스크</div>
+</div>
+
+<div class="panels">
+
+  <!-- CHAT -->
+  <div class="panel active" id="panel-chat">
+    <div class="cmd-bar" id="cmdBar">
+      <button class="cmd-pill" onclick="useCmd('/spec')">/spec</button>
+      <button class="cmd-pill" onclick="useCmd('/plan')">/plan</button>
+      <button class="cmd-pill" onclick="useCmd('/build')">/build</button>
+      <button class="cmd-pill" onclick="useCmd('/test')">/test</button>
+      <button class="cmd-pill" onclick="useCmd('/review')">/review</button>
+      <button class="cmd-pill" onclick="useCmd('/simplify')">/simplify</button>
+      <button class="cmd-pill" onclick="useCmd('/ship')">/ship</button>
+      <button class="cmd-pill" onclick="useCmd('/debug')">/debug</button>
+    </div>
+    <div class="msgs" id="msgs">
+      <div class="msg sys">J.A.R.V.I.S DEV 시스템 가동. agent-skills 워크플로우 탑재 완료. 슬래시 커맨드 또는 자유 대화로 개발 작업을 시작하십시오.</div>
+    </div>
+    <div class="typing" id="typing"><span></span><span></span><span></span></div>
+    <div class="chat-bar">
+      <button class="ibtn" id="vBtn" onclick="togVoice()">🎤</button>
+      <textarea class="chat-input" id="ci" placeholder="명령 입력 또는 /spec, /plan, /build ..." rows="1"></textarea>
+      <button class="ibtn" onclick="send()">▶</button>
+    </div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="panel" id="panel-skills">
+    <div class="scroll-p">
+      <div class="hcard">
+        <div class="hcard-title">▸ DEFINE — 무엇을 만들지 정의</div>
+        <div class="skill-grid">
+          <div class="skill-card" onclick="launchSkill('spec')">
+            <div class="phase-badge phase-define">DEFINE</div>
+            <div class="skill-cmd">/spec</div>
+            <div class="skill-desc">코드 전에 스펙 작성. 요구사항 명확화 워크플로우</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('interview')">
+            <div class="phase-badge phase-define">DEFINE</div>
+            <div class="skill-cmd">/interview</div>
+            <div class="skill-desc">질문 기반으로 진짜 요구사항을 끌어내는 인터뷰 모드</div>
+          </div>
+        </div>
+      </div>
+      <div class="hcard">
+        <div class="hcard-title">▸ PLAN — 어떻게 만들지 계획</div>
+        <div class="skill-grid">
+          <div class="skill-card" onclick="launchSkill('plan')">
+            <div class="phase-badge phase-plan">PLAN</div>
+            <div class="skill-cmd">/plan</div>
+            <div class="skill-desc">스펙을 검증 가능한 소규모 태스크로 분해</div>
+          </div>
+        </div>
+      </div>
+      <div class="hcard">
+        <div class="hcard-title">▸ BUILD — 코드 작성</div>
+        <div class="skill-grid">
+          <div class="skill-card" onclick="launchSkill('build')">
+            <div class="phase-badge phase-build">BUILD</div>
+            <div class="skill-cmd">/build</div>
+            <div class="skill-desc">얇은 수직 슬라이스. 구현→테스트→검증→커밋</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('tdd')">
+            <div class="phase-badge phase-build">BUILD</div>
+            <div class="skill-cmd">/tdd</div>
+            <div class="skill-desc">Red-Green-Refactor. 테스트 피라미드 80/15/5</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('api')">
+            <div class="phase-badge phase-build">BUILD</div>
+            <div class="skill-cmd">/api</div>
+            <div class="skill-desc">Contract-first API 설계. 경계 검증·에러 시맨틱</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('frontend')">
+            <div class="phase-badge phase-build">BUILD</div>
+            <div class="skill-cmd">/frontend</div>
+            <div class="skill-desc">컴포넌트 아키텍처·반응형·WCAG 2.1 AA</div>
+          </div>
+        </div>
+      </div>
+      <div class="hcard">
+        <div class="hcard-title">▸ VERIFY & REVIEW — 검증·리뷰</div>
+        <div class="skill-grid">
+          <div class="skill-card" onclick="launchSkill('debug')">
+            <div class="phase-badge phase-verify">VERIFY</div>
+            <div class="skill-cmd">/debug</div>
+            <div class="skill-desc">5단계 트리아지: 재현→국소화→축소→수정→보호</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('review')">
+            <div class="phase-badge phase-verify">REVIEW</div>
+            <div class="skill-cmd">/review</div>
+            <div class="skill-desc">5축 코드 리뷰. 변경 크기 ~100줄. 심각도 레이블</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('simplify')">
+            <div class="phase-badge phase-verify">REVIEW</div>
+            <div class="skill-cmd">/simplify</div>
+            <div class="skill-desc">Chesterton's Fence. Rule of 500. 복잡도 감소</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('security')">
+            <div class="phase-badge phase-verify">REVIEW</div>
+            <div class="skill-cmd">/security</div>
+            <div class="skill-desc">OWASP Top 10. 인증·시크릿 관리·의존성 감사</div>
+          </div>
+        </div>
+      </div>
+      <div class="hcard">
+        <div class="hcard-title">▸ SHIP — 배포</div>
+        <div class="skill-grid">
+          <div class="skill-card" onclick="launchSkill('ship')">
+            <div class="phase-badge phase-ship">SHIP</div>
+            <div class="skill-cmd">/ship</div>
+            <div class="skill-desc">출시 체크리스트. 단계적 롤아웃. 롤백 절차</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('git')">
+            <div class="phase-badge phase-ship">SHIP</div>
+            <div class="skill-cmd">/git</div>
+            <div class="skill-desc">트렁크 기반 개발. 원자적 커밋. 변경 크기 관리</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('cicd')">
+            <div class="phase-badge phase-ship">SHIP</div>
+            <div class="skill-cmd">/cicd</div>
+            <div class="skill-desc">Shift Left. 피처 플래그. 품질 게이트 파이프라인</div>
+          </div>
+          <div class="skill-card" onclick="launchSkill('perf')">
+            <div class="phase-badge phase-ship">SHIP</div>
+            <div class="skill-cmd">/perf</div>
+            <div class="skill-desc">Core Web Vitals. 측정 우선. 번들 분석</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="panel" id="panel-tasks">
+    <div class="task-bar2">
+      <input class="task-input" id="ti" placeholder="태스크 입력 (접두사: [spec] [build] [test] [ship])..." inputmode="text">
+      <button class="add-btn" onclick="addTask()">+ 추가</button>
+    </div>
+    <div class="task-list" id="tl"></div>
+    <div class="tasks-sum" id="tsum"></div>
+  </div>
+
+</div>
+
+<div class="hud">
+  <span>STARK INDUSTRIES · agent-skills v0.6.0</span>
+  <span id="dd">--</span>
+</div>
+
+<script>
+// ─── SYSTEM PROMPT ───────────────────────────────────────────────────
+const SYS = `You are J.A.R.V.I.S DEV, an elite AI development assistant powered by the agent-skills engineering framework (github.com/addyosmani/agent-skills).
+
+You follow production-grade engineering workflows. When slash commands are used, activate the corresponding skill workflow:
+
+/spec  → Spec-Driven Development: Ask clarifying questions first. Surface assumptions. Create a structured PRD with objectives, commands, structure, code style, testing strategy, and boundaries BEFORE any code.
+/plan  → Planning & Task Breakdown: Decompose specs into small, verifiable atomic tasks with acceptance criteria and dependency ordering. Each task max ~30 min.
+/build → Incremental Implementation: Thin vertical slices. Implement → Test → Verify → Commit. Feature flags. Safe defaults. Never write more than needed.
+/test  → Test-Driven Development: Red-Green-Refactor. Test pyramid 80% unit / 15% integration / 5% E2E. DAMP over DRY. Beyonce Rule (if you liked it, put a test on it).
+/review → Code Review & Quality: Five-axis review (correctness, security, performance, maintainability, tests). Change sizing ~100 lines. Severity labels: Nit/Optional/FYI/Must.
+/simplify → Code Simplification: Chesterton's Fence — understand WHY before removing. Rule of 500 (files over 500 lines need splitting). Reduce complexity, preserve behavior.
+/ship  → Shipping & Launch: Pre-launch checklist. Feature flag lifecycle. Staged rollout. Rollback procedures. Monitoring setup.
+/debug → Debugging & Error Recovery: 5-step triage: Reproduce → Localize → Reduce → Fix → Guard. Stop-the-line rule.
+/security → Security & Hardening: OWASP Top 10 prevention. Auth patterns. Secrets management. Three-tier boundary system.
+/git   → Git Workflow: Trunk-based development. Atomic commits. Commit-as-save-point pattern.
+/cicd  → CI/CD & Automation: Shift Left. Quality gate pipelines. Failure feedback loops.
+/api   → API & Interface Design: Contract-first. Hyrum's Law. One-Version Rule. Error semantics.
+/frontend → Frontend UI Engineering: Component architecture. Design systems. Responsive. WCAG 2.1 AA.
+/perf  → Performance Optimization: Measure first. Core Web Vitals targets. Anti-pattern detection.
+/interview → Interview Mode: One question at a time to extract real requirements. Continue until ~95% confidence.
+/tdd   → TDD deep mode: Write failing test first. Implement minimum to pass. Refactor.
+
+KEY PRINCIPLES you always enforce:
+- Spec before code. Never implement without understanding requirements.
+- Tests are proof, not afterthought.
+- Anti-rationalization: never accept "I'll add tests later" or "this is just a prototype."
+- Verification is non-negotiable: every output must have evidence requirements.
+- Small, atomic changes. ~100 line PRs. One concern per commit.
+
+Always respond in Korean. Be concise but technically precise. Use the JARVIS persona — direct, authoritative, occasionally use "sir", "분석 완료", "검증 완료" style phrases.
+When showing code, wrap in triple backticks with language tag.`;
+
+// ─── SKILL PROMPTS ───────────────────────────────────────────────────
+const SKILL_PROMPTS = {
+  spec: '/spec 워크플로우를 시작합니다. 현재 만들려는 프로젝트나 기능에 대해 설명해 주십시오. 요구사항이 명확해질 때까지 질문드리겠습니다.',
+  plan: '/plan 워크플로우를 시작합니다. 분해할 스펙이나 기능을 설명해 주시면, 검증 가능한 원자적 태스크로 분해해 드리겠습니다.',
+  build: '/build 워크플로우를 시작합니다. 구현할 기능이나 태스크를 설명해 주십시오. 얇은 수직 슬라이스로 진행하겠습니다.',
+  tdd: '/tdd 워크플로우를 시작합니다. 구현할 로직을 설명해 주십시오. Red→Green→Refactor 사이클로 진행합니다.',
+  api: '/api 워크플로우를 시작합니다. 설계할 API나 인터페이스를 설명해 주십시오.',
+  frontend: '/frontend 워크플로우를 시작합니다. 구현할 UI 컴포넌트나 페이지를 설명해 주십시오.',
+  debug: '/debug 워크플로우를 시작합니다. 발생한 버그나 에러를 설명해 주십시오. 5단계 트리아지를 진행하겠습니다.',
+  review: '/review 워크플로우를 시작합니다. 리뷰할 코드를 붙여넣거나 변경사항을 설명해 주십시오.',
+  simplify: '/simplify 워크플로우를 시작합니다. 단순화할 코드를 붙여넣어 주십시오.',
+  security: '/security 워크플로우를 시작합니다. 보안 점검할 코드나 기능을 설명해 주십시오.',
+  ship: '/ship 워크플로우를 시작합니다. 배포 준비 중인 기능이나 서비스를 설명해 주십시오.',
+  git: '/git 워크플로우를 시작합니다. 현재 git 상황이나 커밋/브랜치 전략 질문을 설명해 주십시오.',
+  cicd: '/cicd 워크플로우를 시작합니다. 구성하거나 개선할 CI/CD 파이프라인을 설명해 주십시오.',
+  perf: '/perf 워크플로우를 시작합니다. 성능 개선이 필요한 부분을 설명해 주십시오.',
+  interview: '/interview 모드를 시작합니다. 만들고 싶은 것이 있으시면 말씀해 주십시오. 한 번에 한 질문씩 드리며 요구사항을 명확히 정리해 드리겠습니다.',
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────
+let history = [];
+let listening = false, recog = null;
+
+// ─── CLOCK ───────────────────────────────────────────────────────────
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('dd').textContent=n.toLocaleDateString('ko-KR',{month:'short',day:'numeric',weekday:'short'});
+}
+setInterval(tick,1000); tick();
+
+// ─── TABS ─────────────────────────────────────────────────────────────
+function sw(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ─── CHAT ─────────────────────────────────────────────────────────────
+function appendMsg(role,html){
+  const el=document.createElement('div');
+  el.className='msg '+role;
+  if(role==='ai'||role==='sys') el.innerHTML=html;
+  else el.textContent=html;
+  const box=document.getElementById('msgs');
+  box.appendChild(el);
+  box.scrollTop=box.scrollHeight;
+}
+
+function formatAI(text){
+  // code blocks
+  text=text.replace(/```(\w*)\n?([\s\S]*?)```/g,(_,lang,code)=>`<pre>${escH(code.trim())}</pre>`);
+  // inline code
+  text=text.replace(/`([^`]+)`/g,(_,c)=>`<code>${escH(c)}</code>`);
+  // bold
+  text=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  // newlines
+  text=text.replace(/\n/g,'<br>');
+  return text;
+}
+function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function send(){
+  const inp=document.getElementById('ci');
+  const text=inp.value.trim(); if(!text) return;
+  inp.value=''; inp.style.height='40px';
+  appendMsg('user',text);
+  history.push({role:'user',content:text});
+
+  const typ=document.getElementById('typing');
+  typ.classList.add('show');
+  document.getElementById('msgs').scrollTop=99999;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:history})
+    });
+    const data=await res.json();
+    typ.classList.remove('show');
+    const reply=data.content?.[0]?.text||'신호 수신 오류.';
+    history.push({role:'assistant',content:reply});
+    appendMsg('ai',formatAI(reply));
+    tts(reply.replace(/<[^>]+>/g,'').substring(0,200));
+  }catch(e){
+    typ.classList.remove('show');
+    appendMsg('ai','통신 오류가 발생했습니다. 네트워크를 확인하십시오.');
+  }
+}
+
+function useCmd(cmd){
+  const inp=document.getElementById('ci');
+  inp.value=cmd+' ';
+  inp.focus();
+}
+
+function launchSkill(key){
+  const prompt=SKILL_PROMPTS[key];
+  if(!prompt) return;
+  // switch to chat tab
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-chat').classList.add('active');
+  document.querySelector('.tab').classList.add('active');
+  appendMsg('sys',prompt);
+  history.push({role:'user',content:prompt});
+  // auto-trigger AI response
+  history.push({role:'user',content:prompt});
+  history.pop(); // remove duplicate
+  const inp=document.getElementById('ci');
+  inp.value=prompt;
+  send();
+}
+
+// auto-resize textarea
+document.getElementById('ci').addEventListener('input',function(){
+  this.style.height='40px';
+  this.style.height=Math.min(this.scrollHeight,120)+'px';
+});
+document.getElementById('ci').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+});
+
+// ─── VOICE ───────────────────────────────────────────────────────────
+function tts(text){
+  if(!('speechSynthesis' in window))return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='ko-KR';u.rate=1.05;
+  window.speechSynthesis.speak(u);
+}
+function togVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){appendMsg('ai','이 브라우저는 음성 인식을 지원하지 않습니다.');return;}
+  const btn=document.getElementById('vBtn');
+  if(!listening){
+    recog=new SR();recog.lang='ko-KR';recog.continuous=false;recog.interimResults=false;
+    recog.onresult=e=>{document.getElementById('ci').value=e.results[0][0].transcript;stopV();send();};
+    recog.onerror=()=>stopV();recog.onend=()=>stopV();
+    recog.start();listening=true;btn.classList.add('listening');btn.textContent='🔴';
+  }else stopV();
+}
+function stopV(){if(recog)recog.stop();listening=false;const b=document.getElementById('vBtn');b.classList.remove('listening');b.textContent='🎤';}
+
+// ─── TASKS ───────────────────────────────────────────────────────────
+const TAG_RE=/^\[(spec|build|test|ship|plan|review|debug)\]/i;
+let tasks=JSON.parse(localStorage.getItem('jd-tasks')||'null')||[
+  {id:1,tag:'build',text:'HDR220-26 볼팅 프로그램 HRScript 검토',done:false},
+  {id:2,tag:'test',text:'EtherCAT CREVIS 모듈 신호 맵핑 검증',done:false},
+  {id:3,tag:'spec',text:'Modbus MW 레지스터 인코더 통신 스펙 작성',done:false},
+  {id:4,tag:'build',text:'intr_def 인터럽트 핸들러 구현',done:true},
+];
+
+function saveT(){localStorage.setItem('jd-tasks',JSON.stringify(tasks));}
+function tagClass(t){return t?'ttag-'+t:'';}
+
+function renderT(){
+  const list=document.getElementById('tl');
+  list.innerHTML='';
+  tasks.forEach(t=>{
+    const el=document.createElement('div');
+    el.className='task-item';
+    el.innerHTML=`
+      <div class="task-chk ${t.done?'done':''}" onclick="togT(${t.id})">${t.done?'✓':''}</div>
+      <div class="task-body">
+        ${t.tag?`<span class="task-tag ${tagClass(t.tag)}">${t.tag.toUpperCase()}</span>`:''}
+        <div class="task-txt ${t.done?'done':''}">${t.text}</div>
+      </div>
+      <button class="task-del" onclick="delT(${t.id})">✕</button>`;
+    list.appendChild(el);
+  });
+  const done=tasks.filter(t=>t.done).length;
+  document.getElementById('tsum').textContent=`▸ 완료 ${done} / 전체 ${tasks.length} · 진행중 ${tasks.length-done}`;
+}
+
+function addTask(){
+  const inp=document.getElementById('ti');
+  let text=inp.value.trim(); if(!text) return;
+  let tag='';
+  const m=text.match(TAG_RE);
+  if(m){tag=m[1].toLowerCase();text=text.slice(m[0].length).trim();}
+  tasks.unshift({id:Date.now(),tag,text,done:false});
+  inp.value='';saveT();renderT();
+}
+function togT(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);saveT();renderT();}
+function delT(id){tasks=tasks.filter(t=>t.id!==id);saveT();renderT();}
+document.getElementById('ti').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});
+renderT();
+
+// ─── PWA INSTALL ─────────────────────────────────────────────────────
+let dp=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;document.getElementById('ib').classList.add('show');});
+document.getElementById('instBtn').addEventListener('click',async()=>{
+  if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;
+  if(outcome==='accepted')document.getElementById('ib').classList.remove('show');dp=null;
+});
+window.addEventListener('appinstalled',()=>document.getElementById('ib').classList.remove('show'));
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
