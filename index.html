@@ -17,6 +17,24 @@
 html,body{background:var(--bg);color:var(--c);font-family:'Share Tech Mono',monospace;height:100%;overflow:hidden;}
 body{display:flex;flex-direction:column;max-width:500px;margin:0 auto;}
 
+/* API KEY SCREEN */
+.key-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;max-width:500px;margin:0 auto;}
+.key-logo{width:70px;height:70px;border:2px solid var(--c);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:12px;margin-bottom:20px;animation:rp 2.5s ease-in-out infinite;}
+.key-title{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:3px;margin-bottom:6px;}
+.key-sub{font-size:10px;color:rgba(0,212,255,.5);margin-bottom:30px;text-align:center;line-height:1.6;}
+.key-input{width:100%;background:var(--bg2);border:1px solid rgba(0,212,255,.4);border-radius:6px;padding:12px 14px;color:var(--c);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;margin-bottom:10px;letter-spacing:1px;}
+.key-input:focus{border-color:var(--c);}
+.key-input::placeholder{color:rgba(0,212,255,.3);}
+.key-btn{width:100%;background:rgba(0,212,255,.15);border:1px solid var(--c);border-radius:6px;color:var(--c);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;padding:13px;cursor:pointer;transition:all .2s;margin-bottom:14px;}
+.key-btn:active{background:rgba(0,212,255,.3);}
+.key-help{font-size:10px;color:rgba(0,212,255,.4);text-align:center;line-height:1.8;}
+.key-help a{color:rgba(0,212,255,.7);text-decoration:none;}
+.key-err{font-size:10px;color:var(--r);margin-bottom:8px;display:none;}
+.key-saved{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,255,136,.15);border:1px solid var(--g);border-radius:6px;color:var(--g);font-size:11px;padding:8px 18px;letter-spacing:1px;opacity:0;transition:opacity .3s;pointer-events:none;}
+/* KEY BADGE in header */
+.key-badge{font-size:9px;color:rgba(0,255,136,.7);cursor:pointer;border:1px solid rgba(0,255,136,.3);border-radius:3px;padding:2px 6px;transition:all .2s;}
+.key-badge:active{background:rgba(0,255,136,.1);}
+
 /* SCAN */
 .scan{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.25),transparent);animation:scan 6s linear infinite;pointer-events:none;z-index:999;}
 @keyframes scan{0%{top:0}100%{top:100vh}}
@@ -128,6 +146,22 @@ body{display:flex;flex-direction:column;max-width:500px;margin:0 auto;}
 </style>
 </head>
 <body>
+
+<!-- API KEY SCREEN -->
+<div class="key-screen" id="keyScreen">
+  <div class="key-logo">JAR</div>
+  <div class="key-title">J.A.R.V.I.S DEV</div>
+  <div class="key-sub">시작하려면 Anthropic API 키를 입력하세요.<br>키는 이 기기에만 저장되며 외부로 전송되지 않습니다.</div>
+  <div class="key-err" id="keyErr">❌ sk-ant- 로 시작하는 키를 입력하세요.</div>
+  <input class="key-input" id="keyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+  <button class="key-btn" onclick="saveKey()">▶ 시스템 가동</button>
+  <div class="key-help">
+    API 키 발급: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>
+    키는 브라우저 로컬 저장소에만 저장됩니다.<br>GitHub 코드에 노출되지 않습니다.
+  </div>
+</div>
+<div class="key-saved" id="keySaved">✓ 키 저장 완료</div>
+
 <div class="scan"></div>
 
 <div class="inst-banner" id="ib">
@@ -141,7 +175,7 @@ body{display:flex;flex-direction:column;max-width:500px;margin:0 auto;}
   <span class="htitle">J.A.R.V.I.S DEV</span>
   <div class="hright">
     <div class="clock" id="clock">--:--</div>
-    <div class="hstatus"><span class="sdot"></span>DEV MODE</div>
+    <div class="hstatus"><span class="sdot"></span><span class="key-badge" onclick="changeKey()">KEY ✓</span></div>
   </div>
 </div>
 
@@ -300,7 +334,29 @@ body{display:flex;flex-direction:column;max-width:500px;margin:0 auto;}
 </div>
 
 <script>
-// ─── SYSTEM PROMPT ───────────────────────────────────────────────────
+// ─── API KEY MANAGEMENT ──────────────────────────────────────────────
+function getKey(){ return localStorage.getItem('jarvis-api-key')||''; }
+function saveKey(){
+  const val=document.getElementById('keyInput').value.trim();
+  if(!val.startsWith('sk-ant-')){
+    document.getElementById('keyErr').style.display='block'; return;
+  }
+  localStorage.setItem('jarvis-api-key', val);
+  document.getElementById('keyScreen').style.display='none';
+  const saved=document.getElementById('keySaved');
+  saved.style.opacity='1';
+  setTimeout(()=>saved.style.opacity='0', 2000);
+}
+function changeKey(){
+  document.getElementById('keyInput').value='';
+  document.getElementById('keyErr').style.display='none';
+  document.getElementById('keyScreen').style.display='flex';
+}
+// Check key on load
+window.addEventListener('DOMContentLoaded',()=>{
+  if(getKey()) document.getElementById('keyScreen').style.display='none';
+  document.getElementById('keyInput').addEventListener('keydown',e=>{ if(e.key==='Enter') saveKey(); });
+});
 const SYS = `You are J.A.R.V.I.S DEV, an elite AI development assistant powered by the agent-skills engineering framework (github.com/addyosmani/agent-skills).
 
 You follow production-grade engineering workflows. When slash commands are used, activate the corresponding skill workflow:
@@ -409,7 +465,11 @@ async function send(){
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': getKey(),
+        'anthropic-version':'2023-06-01'
+      },
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:history})
     });
     const data=await res.json();
